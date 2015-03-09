@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <BumpFile>$(MSBuildProjectDirectory)\Config\ClientDependency.config</BumpFile>
+    <BumpXPath>/clientDependency/@version</BumpXPath>
+    <BumpNamespaces></BumpNamespaces>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Increment" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <Number ParameterType="System.Int64" Required="true"/>
+      <Incremented ParameterType="System.Int64" Output="true"/>
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
+        Incremented = Number + 1;
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="BumpClientDependency" BeforeTargets="CollectFilesFromContent">
+    <XmlPeek XmlInputPath="$(BumpFile)" Namespaces="$(BumpNamespaces)" Query="$(BumpXPath)">
+      <Output TaskParameter="Result" ItemName="OldClientDependencyVersion"/>
+    </XmlPeek>
+    <Increment Number="@(OldClientDependencyVersion)">
+      <Output ItemName="NewClientDependencyVersion" TaskParameter="Incremented"/>
+    </Increment>
+    <XmlPoke XmlInputPath="$(BumpFile)" Namespaces="$(BumpNamespaces)" Query="$(BumpXPath)" Value="@(NewClientDependencyVersion)"/>
+    <Message Text="ClientDependency bumped from version: @(OldClientDependencyVersion) to version: @(NewClientDependencyVersion)" Importance="high"/>
+  </Target>
+</Project>
